@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clinical Trial Cost Estimation Calculator</title>
+  <style>
+    :root{
+      --bg:#f4f7f5; --panel:#ffffff; --ink:#153126; --muted:#66756f;
+      --green:#0f4c3a; --green2:#167356; --pale:#e8f3ee; --line:#d8e4de;
+      --amber:#fff4d8; --red:#b42318; --shadow:0 18px 45px rgba(15,76,58,.12);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#eef6f1 0%,var(--bg) 45%,#fff 100%);color:var(--ink);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.45}
+    header{padding:34px 24px 24px;background:linear-gradient(135deg,var(--green),#062b20);color:white}
+    .hero{max-width:1220px;margin:0 auto;display:grid;grid-template-columns:1.25fr .75fr;gap:22px;align-items:end}
+    h1{margin:0 0 8px;font-size:clamp(28px,4vw,48px);line-height:1.05;letter-spacing:-.04em}
+    .subtitle{margin:0;color:#d8efe5;max-width:860px;font-size:16px}
+    .hero-card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:18px;backdrop-filter:blur(8px)}
+    .hero-card strong{display:block;font-size:30px;line-height:1.1;margin-bottom:5px}.hero-card span{color:#d8efe5;font-size:13px}
+    main{max-width:1220px;margin:0 auto;padding:22px 18px 60px;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:22px}
+    .section{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:18px}
+    .section h2{margin:0 0 4px;font-size:20px;letter-spacing:-.02em}.section p.note{margin:0 0 16px;color:var(--muted);font-size:13px}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+    label{display:block;font-size:12px;font-weight:700;color:#345146;margin-bottom:6px}
+    input,select,textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px 11px;background:#fff;color:var(--ink);font-size:14px;outline:none}
+    input:focus,select:focus,textarea:focus{border-color:var(--green2);box-shadow:0 0 0 3px rgba(22,115,86,.12)}
+    .field small{display:block;margin-top:4px;color:var(--muted);font-size:11px}.editable{background:var(--amber)}
+    .sticky{position:sticky;top:16px;align-self:start;background:#10291f;color:white;border-radius:24px;box-shadow:0 24px 60px rgba(0,0,0,.25);overflow:hidden}
+    .sticky .top{padding:22px;background:linear-gradient(135deg,#123d2f,#071c15)}.sticky h2{margin:0 0 12px;font-size:20px}.grand{font-size:36px;font-weight:850;letter-spacing:-.04em}.grand small{display:block;font-size:12px;color:#bfe5d4;font-weight:500;letter-spacing:0;margin-top:4px}
+    .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}.kpi{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:12px}.kpi span{display:block;color:#bfe5d4;font-size:11px}.kpi strong{font-size:17px}
+    .breakdown{padding:0 16px 18px}.bar-row{margin:10px 0}.bar-label{display:flex;justify-content:space-between;font-size:12px;color:#d9eee4;margin-bottom:5px}.bar{height:8px;background:rgba(255,255,255,.14);border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:#7ee0b5;border-radius:99px;width:0%}
+    table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:white}th,td{padding:10px;border-bottom:1px solid var(--line);font-size:13px;text-align:left}th{background:var(--pale);font-size:12px;color:#26463a}tr:last-child td{border-bottom:none}td input{padding:8px;border-radius:9px;font-size:13px}.right{text-align:right}.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:99px;background:var(--pale);color:var(--green);font-size:12px;font-weight:700}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}button{border:0;border-radius:12px;background:var(--green);color:white;padding:10px 13px;font-weight:750;cursor:pointer}button.secondary{background:#e8f3ee;color:var(--green)}button.danger{background:#fde7e5;color:var(--red)}button:hover{filter:brightness(.98);transform:translateY(-1px)}
+    .result-table td:last-child,.result-table th:last-child{text-align:right;font-weight:750}.warning{background:#fff7ed;border:1px solid #fed7aa;color:#7c2d12;border-radius:14px;padding:12px;font-size:13px;margin-top:12px}.footer-note{color:var(--muted);font-size:12px;margin-top:14px}.hide-print{display:initial}
+    @media(max-width:960px){.hero,main{grid-template-columns:1fr}.sticky{position:relative;top:0}.grid,.grid.two,.grid.four{grid-template-columns:1fr 1fr}}
+    @media(max-width:620px){.grid,.grid.two,.grid.four{grid-template-columns:1fr}header{padding:24px 16px}main{padding:16px 12px 40px}th,td{font-size:12px;padding:8px}.grand{font-size:30px}}
+    @media print{header,.actions,.hide-print{display:none!important}body{background:white}main{display:block;max-width:100%;padding:0}.section,.sticky{box-shadow:none;border:1px solid #ddd;break-inside:avoid}.sticky{color:#111;background:white}.sticky .top{background:white;color:#111}.bar i{background:#333}.kpi{border:1px solid #ddd;color:#111}.kpi span,.sticky .grand small,.bar-label{color:#333}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="hero">
+      <div>
+        <span class="pill">Clinical trial budgeting tool</span>
+        <h1>Clinical Trial Cost Estimation Calculator</h1>
+        <p class="subtitle">Estimate full trial costs across start-up, staffing, participants, procedures, monitoring, data systems, intervention, safety, close-out, contingency and institutional overhead. Designed for protocol planning, grant preparation and budget negotiation.</p>
+      </div>
+      <div class="hero-card">
+        <strong id="heroTotal">MYR 0</strong>
+        <span>Estimated total budget updates automatically as you edit assumptions.</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div>
+      <section class="section">
+        <h2>1. Trial design and core assumptions</h2>
+        <p class="note">Edit the yellow fields. The calculator uses expected enrolled and screened participants to estimate operational burden.</p>
+        <div class="grid three">
+          <div class="field"><label>Currency</label><select id="currency" class="editable"><option>MYR</option><option>USD</option><option>SGD</option><option>GBP</option><option>EUR</option></select></div>
+          <div class="field"><label>Trial phase/type</label><select id="trialType" class="editable"><option>Investigator-initiated clinical trial</option><option>Pilot / feasibility trial</option><option>Phase I</option><option>Phase II</option><option>Phase III</option><option>Implementation / pragmatic trial</option><option>Device / diagnostic trial</option></select></div>
+          <div class="field"><label>Study duration, months</label><input id="durationMonths" class="editable" type="number" value="24" min="1"></div>
+          <div class="field"><label>Number of sites</label><input id="sites" class="editable" type="number" value="3" min="1"></div>
+          <div class="field"><label>Target enrolled participants</label><input id="enrolled" class="editable" type="number" value="300" min="1"></div>
+          <div class="field"><label>Expected dropout rate, %</label><input id="dropout" class="editable" type="number" value="15" min="0" max="100"></div>
+          <div class="field"><label>Screening success rate, %</label><input id="screenSuccess" class="editable" type="number" value="60" min="1" max="100"><small>Example: 60% means 500 screened to enrol 300.</small></div>
+          <div class="field"><label>Recruitment months</label><input id="recruitMonths" class="editable" type="number" value="12" min="1"></div>
+          <div class="field"><label>Risk intensity</label><select id="riskIntensity" class="editable"><option value="1">Low risk</option><option value="1.15" selected>Moderate risk</option><option value="1.35">High risk</option></select><small>Applies to monitoring, safety and QA intensity.</small></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>2. Start-up, regulatory and site activation</h2>
+        <p class="note">Include ethics, regulatory submissions, contracts, investigator meeting, site initiation and training.</p>
+        <div class="grid four">
+          <div class="field"><label>Protocol / grant development</label><input id="protocolCost" class="editable" type="number" value="15000"></div>
+          <div class="field"><label>Ethics / regulatory fee per site</label><input id="ethicsPerSite" class="editable" type="number" value="3000"></div>
+          <div class="field"><label>Contract/legal per site</label><input id="contractPerSite" class="editable" type="number" value="5000"></div>
+          <div class="field"><label>Site initiation & training per site</label><input id="trainingPerSite" class="editable" type="number" value="6000"></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>3. Staffing and project management</h2>
+        <p class="note">Use monthly salary or cost-to-project values. FTE can be fractional.</p>
+        <div class="grid four">
+          <div class="field"><label>Project manager monthly</label><input id="pmMonthly" class="editable" type="number" value="8000"></div>
+          <div class="field"><label>Project manager FTE</label><input id="pmFte" class="editable" type="number" value="0.5" step="0.05"></div>
+          <div class="field"><label>Study coordinator monthly</label><input id="coordMonthly" class="editable" type="number" value="5000"></div>
+          <div class="field"><label>Coordinator FTE per site</label><input id="coordFteSite" class="editable" type="number" value="0.5" step="0.05"></div>
+          <div class="field"><label>Data manager monthly</label><input id="dmMonthly" class="editable" type="number" value="5500"></div>
+          <div class="field"><label>Data manager FTE</label><input id="dmFte" class="editable" type="number" value="0.3" step="0.05"></div>
+          <div class="field"><label>Biostatistician / methodologist monthly</label><input id="statMonthly" class="editable" type="number" value="9000"></div>
+          <div class="field"><label>Statistician FTE</label><input id="statFte" class="editable" type="number" value="0.15" step="0.05"></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>4. Participant recruitment and screening</h2>
+        <p class="note">Screening cost is based on expected number screened, not just enrolled.</p>
+        <div class="grid four">
+          <div class="field"><label>Advertising / community engagement</label><input id="advertising" class="editable" type="number" value="12000"></div>
+          <div class="field"><label>Screening cost per person</label><input id="screenCost" class="editable" type="number" value="80"></div>
+          <div class="field"><label>Consent/admin cost per enrolled participant</label><input id="consentCost" class="editable" type="number" value="60"></div>
+          <div class="field"><label>Participant retention allowance/person</label><input id="retentionCost" class="editable" type="number" value="100"></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>5. Visit schedule and procedure costs</h2>
+        <p class="note">Add each visit type. Per-participant cost = frequency × enrolled participants × expected completion. Dropout adjustment is applied to follow-up visits.</p>
+        <table id="visitTable">
+          <thead><tr><th>Visit</th><th>Frequency per participant</th><th>Completion %</th><th>Clinician minutes</th><th>Nurse/RA minutes</th><th>Lab cost</th><th>Imaging cost</th><th>Consumables</th><th>Reimbursement</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="actions hide-print">
+          <button onclick="addVisit()">+ Add visit</button>
+          <button class="secondary" onclick="resetVisits()">Reset visit schedule</button>
+        </div>
+        <div class="grid four" style="margin-top:14px">
+          <div class="field"><label>Clinician hourly rate</label><input id="clinicianHour" class="editable" type="number" value="120"></div>
+          <div class="field"><label>Nurse / RA hourly rate</label><input id="nurseHour" class="editable" type="number" value="45"></div>
+          <div class="field"><label>Pharmacy / dispensing per participant</label><input id="pharmacyCost" class="editable" type="number" value="150"></div>
+          <div class="field"><label>Intervention/device cost per participant</label><input id="interventionCost" class="editable" type="number" value="250"></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>6. Monitoring, QA, safety, data systems and close-out</h2>
+        <p class="note">These items often become under-budgeted. Adjust according to trial risk, regulatory burden and number of sites.</p>
+        <div class="grid four">
+          <div class="field"><label>Monitoring visits per site</label><input id="monitorVisitsSite" class="editable" type="number" value="4"></div>
+          <div class="field"><label>Cost per monitoring visit</label><input id="monitorCostVisit" class="editable" type="number" value="3500"></div>
+          <div class="field"><label>QA/audit base cost</label><input id="qaBase" class="editable" type="number" value="10000"></div>
+          <div class="field"><label>DSMB/safety review meetings</label><input id="dsmbMeetings" class="editable" type="number" value="3"></div>
+          <div class="field"><label>Cost per DSMB/safety meeting</label><input id="dsmbCost" class="editable" type="number" value="2500"></div>
+          <div class="field"><label>EDC/database setup</label><input id="edcSetup" class="editable" type="number" value="20000"></div>
+          <div class="field"><label>EDC monthly licence</label><input id="edcMonthly" class="editable" type="number" value="1000"></div>
+          <div class="field"><label>Randomisation/ePRO/technology</label><input id="technology" class="editable" type="number" value="8000"></div>
+          <div class="field"><label>Travel/logistics</label><input id="travel" class="editable" type="number" value="15000"></div>
+          <div class="field"><label>Close-out per site</label><input id="closeoutPerSite" class="editable" type="number" value="3000"></div>
+          <div class="field"><label>Archiving/document retention</label><input id="archiving" class="editable" type="number" value="5000"></div>
+          <div class="field"><label>Manuscript/dissemination</label><input id="dissemination" class="editable" type="number" value="10000"></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>7. Institutional overhead and reserve</h2>
+        <p class="note">Use this section to model university/institution overhead, inflation and a maintenance or contingency reserve.</p>
+        <div class="grid four">
+          <div class="field"><label>Contingency / maintenance reserve, %</label><input id="contingencyPct" class="editable" type="number" value="10"></div>
+          <div class="field"><label>Institutional overhead, %</label><input id="overheadPct" class="editable" type="number" value="15"></div>
+          <div class="field"><label>Annual inflation, %</label><input id="inflationPct" class="editable" type="number" value="3"></div>
+          <div class="field"><label>Other fixed costs</label><input id="otherFixed" class="editable" type="number" value="5000"></div>
+        </div>
+        <div class="warning">This is an estimation tool, not a substitute for institutional finance review. Confirm salary scales, procurement rules, sponsor requirements, insurance, tax, indirect-cost policy and site payment arrangements before submission.</div>
+      </section>
+
+      <section class="section">
+        <h2>Itemised cost detail</h2>
+        <p class="note">The table below updates automatically from your assumptions.</p>
+        <table class="result-table" id="detailTable"><thead><tr><th>Category</th><th>Item</th><th>Calculation basis</th><th>Estimated cost</th></tr></thead><tbody></tbody></table>
+        <div class="actions hide-print">
+          <button onclick="exportCSV()">Export cost table CSV</button>
+          <button class="secondary" onclick="saveJSON()">Download assumptions JSON</button>
+          <button class="secondary" onclick="window.print()">Print / Save PDF</button>
+          <button class="danger" onclick="resetAll()">Reset all values</button>
+        </div>
+        <p class="footer-note">Prepared as a planning calculator for clinical trial budgeting. Values are examples and should be replaced with local institutional rates and sponsor-specific requirements.</p>
+      </section>
+    </div>
+
+    <aside class="sticky">
+      <div class="top">
+        <h2>Budget summary</h2>
+        <div class="grand" id="grandTotal">MYR 0<small>Total including contingency, overhead and inflation adjustment</small></div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><span>Direct subtotal</span><strong id="directSubtotal">MYR 0</strong></div>
+        <div class="kpi"><span>Screened participants</span><strong id="screenedKpi">0</strong></div>
+        <div class="kpi"><span>Cost / enrolled participant</span><strong id="costPerParticipant">MYR 0</strong></div>
+        <div class="kpi"><span>Cost / site</span><strong id="costPerSite">MYR 0</strong></div>
+      </div>
+      <div class="breakdown" id="breakdown"></div>
+    </aside>
+  </main>
+
+<script>
+const defaultVisits = [
+  {name:'Screening / baseline',freq:1,completion:100,clin:20,nurse:60,lab:120,img:0,cons:30,reb:30},
+  {name:'Intervention / randomisation',freq:1,completion:100,clin:15,nurse:45,lab:0,img:0,cons:20,reb:30},
+  {name:'Follow-up visit',freq:3,completion:88,clin:15,nurse:40,lab:80,img:0,cons:20,reb:40},
+  {name:'Final assessment',freq:1,completion:85,clin:20,nurse:50,lab:120,img:0,cons:25,reb:50}
+];
+let visits = JSON.parse(localStorage.getItem('ctc_visits') || 'null') || structuredClone(defaultVisits);
+const ids = ['currency','trialType','durationMonths','sites','enrolled','dropout','screenSuccess','recruitMonths','riskIntensity','protocolCost','ethicsPerSite','contractPerSite','trainingPerSite','pmMonthly','pmFte','coordMonthly','coordFteSite','dmMonthly','dmFte','statMonthly','statFte','advertising','screenCost','consentCost','retentionCost','clinicianHour','nurseHour','pharmacyCost','interventionCost','monitorVisitsSite','monitorCostVisit','qaBase','dsmbMeetings','dsmbCost','edcSetup','edcMonthly','technology','travel','closeoutPerSite','archiving','dissemination','contingencyPct','overheadPct','inflationPct','otherFixed'];
+function num(id){return Number(document.getElementById(id).value)||0}
+function fmt(x){return `${document.getElementById('currency').value} ${Math.round(x).toLocaleString()}`}
+function pct(x){return `${Math.round(x)}%`}
+function readSaved(){const saved=JSON.parse(localStorage.getItem('ctc_inputs')||'{}');ids.forEach(id=>{if(saved[id]!==undefined){document.getElementById(id).value=saved[id]}})}
+function saveState(){const obj={};ids.forEach(id=>obj[id]=document.getElementById(id).value);localStorage.setItem('ctc_inputs',JSON.stringify(obj));localStorage.setItem('ctc_visits',JSON.stringify(visits));}
+function renderVisits(){const tbody=document.querySelector('#visitTable tbody');tbody.innerHTML='';visits.forEach((v,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td><input value="${v.name}" onchange="visits[${i}].name=this.value;calculate()"></td><td><input type="number" value="${v.freq}" onchange="visits[${i}].freq=Number(this.value)||0;calculate()"></td><td><input type="number" value="${v.completion}" onchange="visits[${i}].completion=Number(this.value)||0;calculate()"></td><td><input type="number" value="${v.clin}" onchange="visits[${i}].clin=Number(this.value)||0;calculate()"></td><td><input type="number" value="${v.nurse}" onchange="visits[${i}].nurse=Number(this.value)||0;calculate()"></td><td><input type="number" value="${v.lab}" onchange="visits[${i}].lab=Number(this.value)||0;calculate()"></td><td><input type="number" value="${v.img}" onchange="visits[${i}].img=Number(this.value)||0;calculate()"></td><td><input type="number" value="${v.cons}" onchange="visits[${i}].cons=Number(this.value)||0;calculate()"></td><td><input type="number" value="${v.reb}" onchange="visits[${i}].reb=Number(this.value)||0;calculate()"></td><td><button class="danger" onclick="visits.splice(${i},1);renderVisits();calculate()">×</button></td>`;tbody.appendChild(tr);});}
+function addVisit(){visits.push({name:'New visit',freq:1,completion:90,clin:15,nurse:30,lab:0,img:0,cons:0,reb:0});renderVisits();calculate()}
+function resetVisits(){visits=structuredClone(defaultVisits);renderVisits();calculate()}
+function row(category,item,basis,cost){return {category,item,basis,cost}}
+function calculate(){
+  const sites=num('sites'), enrolled=num('enrolled'), duration=num('durationMonths'), risk=num('riskIntensity');
+  const screened=Math.ceil(enrolled/(num('screenSuccess')/100));
+  const inflationFactor=1+(num('inflationPct')/100)*(duration/12/2);
+  let rows=[];
+  rows.push(row('Start-up','Protocol/grant development','Fixed cost',num('protocolCost')));
+  rows.push(row('Start-up','Ethics/regulatory submissions',`${sites} sites × fee/site`,sites*num('ethicsPerSite')));
+  rows.push(row('Start-up','Contracts/legal',`${sites} sites × legal/site`,sites*num('contractPerSite')));
+  rows.push(row('Start-up','Site initiation and training',`${sites} sites × training/site`,sites*num('trainingPerSite')));
+  rows.push(row('Staffing','Project manager',`${duration} months × monthly rate × FTE`,duration*num('pmMonthly')*num('pmFte')));
+  rows.push(row('Staffing','Study coordinators',`${duration} months × ${sites} sites × monthly rate × FTE/site`,duration*sites*num('coordMonthly')*num('coordFteSite')));
+  rows.push(row('Staffing','Data manager',`${duration} months × monthly rate × FTE`,duration*num('dmMonthly')*num('dmFte')));
+  rows.push(row('Staffing','Biostatistician/methodologist',`${duration} months × monthly rate × FTE`,duration*num('statMonthly')*num('statFte')));
+  rows.push(row('Recruitment','Advertising/community engagement','Fixed cost',num('advertising')));
+  rows.push(row('Recruitment','Screening',`${screened} screened × cost/person`,screened*num('screenCost')));
+  rows.push(row('Recruitment','Consent/admin',`${enrolled} enrolled × cost/person`,enrolled*num('consentCost')));
+  rows.push(row('Recruitment','Retention allowance',`${enrolled} enrolled × allowance/person`,enrolled*num('retentionCost')));
+  let clinician=0,nurse=0,lab=0,img=0,cons=0,reb=0;
+  visits.forEach(v=>{const people=enrolled*(v.completion/100)*v.freq;clinician += people*(v.clin/60)*num('clinicianHour');nurse += people*(v.nurse/60)*num('nurseHour');lab += people*v.lab;img += people*v.img;cons += people*v.cons;reb += people*v.reb;});
+  rows.push(row('Procedures','Clinician time','Visit schedule × clinician minutes × hourly rate',clinician));
+  rows.push(row('Procedures','Nurse/RA time','Visit schedule × nurse/RA minutes × hourly rate',nurse));
+  rows.push(row('Procedures','Laboratory tests','Visit schedule × lab cost',lab));
+  rows.push(row('Procedures','Imaging/tests','Visit schedule × imaging cost',img));
+  rows.push(row('Procedures','Consumables','Visit schedule × consumables',cons));
+  rows.push(row('Participant costs','Travel/reimbursement','Visit schedule × reimbursement',reb));
+  rows.push(row('Intervention','Pharmacy/dispensing',`${enrolled} enrolled × pharmacy cost`,enrolled*num('pharmacyCost')));
+  rows.push(row('Intervention','Intervention/device/materials',`${enrolled} enrolled × intervention cost`,enrolled*num('interventionCost')));
+  rows.push(row('Monitoring & QA','Monitoring visits',`${sites} sites × visits/site × cost/visit × risk`,sites*num('monitorVisitsSite')*num('monitorCostVisit')*risk));
+  rows.push(row('Monitoring & QA','QA/audit','Base cost × risk intensity',num('qaBase')*risk));
+  rows.push(row('Safety','DSMB/safety reviews',`Meetings × cost/meeting × risk`,num('dsmbMeetings')*num('dsmbCost')*risk));
+  rows.push(row('Data systems','EDC/database setup','Fixed cost',num('edcSetup')));
+  rows.push(row('Data systems','EDC licence',`${duration} months × monthly licence`,duration*num('edcMonthly')));
+  rows.push(row('Data systems','Randomisation/ePRO/technology','Fixed cost',num('technology')));
+  rows.push(row('Logistics','Travel/logistics','Fixed cost',num('travel')));
+  rows.push(row('Close-out','Site close-out',`${sites} sites × close-out/site`,sites*num('closeoutPerSite')));
+  rows.push(row('Close-out','Archiving/document retention','Fixed cost',num('archiving')));
+  rows.push(row('Dissemination','Manuscript/report/dissemination','Fixed cost',num('dissemination')));
+  rows.push(row('Other','Other fixed costs','User-defined fixed cost',num('otherFixed')));
+  const direct=rows.reduce((s,r)=>s+r.cost,0);
+  const inflationAdj=direct*(inflationFactor-1);
+  const contingency=(direct+inflationAdj)*num('contingencyPct')/100;
+  const overhead=(direct+inflationAdj+contingency)*num('overheadPct')/100;
+  const grand=direct+inflationAdj+contingency+overhead;
+  rows.push(row('Adjustment','Inflation adjustment',`Approx. half-duration exposure: factor ${inflationFactor.toFixed(3)}`,inflationAdj));
+  rows.push(row('Adjustment','Contingency / maintenance reserve',`${num('contingencyPct')}% of adjusted direct cost`,contingency));
+  rows.push(row('Adjustment','Institutional overhead',`${num('overheadPct')}% after contingency`,overhead));
+  renderDetail(rows);
+  document.getElementById('grandTotal').innerHTML=`${fmt(grand)}<small>Total including contingency, overhead and inflation adjustment</small>`;
+  document.getElementById('heroTotal').textContent=fmt(grand);
+  document.getElementById('directSubtotal').textContent=fmt(direct);
+  document.getElementById('screenedKpi').textContent=screened.toLocaleString();
+  document.getElementById('costPerParticipant').textContent=fmt(grand/enrolled);
+  document.getElementById('costPerSite').textContent=fmt(grand/sites);
+  renderBreakdown(rows, grand);
+  window.currentRows=rows;window.currentGrand=grand;saveState();
+}
+function renderDetail(rows){const tbody=document.querySelector('#detailTable tbody');tbody.innerHTML='';rows.forEach(r=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${r.category}</td><td>${r.item}</td><td>${r.basis}</td><td>${fmt(r.cost)}</td>`;tbody.appendChild(tr);});}
+function renderBreakdown(rows,grand){const groups={};rows.forEach(r=>{groups[r.category]=(groups[r.category]||0)+r.cost});const sorted=Object.entries(groups).sort((a,b)=>b[1]-a[1]);document.getElementById('breakdown').innerHTML=sorted.map(([k,v])=>`<div class="bar-row"><div class="bar-label"><span>${k}</span><span>${pct(v/grand*100)}</span></div><div class="bar"><i style="width:${Math.min(100,v/grand*100)}%"></i></div></div>`).join('');}
+function exportCSV(){const rows=window.currentRows||[];let csv='Category,Item,Calculation basis,Estimated cost\n'+rows.map(r=>[r.category,r.item,r.basis,Math.round(r.cost)].map(x=>`"${String(x).replaceAll('"','""')}"`).join(',')).join('\n');downloadBlob(csv,'clinical_trial_cost_table.csv','text/csv')}
+function saveJSON(){const obj={inputs:{},visits,total:window.currentGrand};ids.forEach(id=>obj.inputs[id]=document.getElementById(id).value);obj.visits=visits;downloadBlob(JSON.stringify(obj,null,2),'clinical_trial_cost_assumptions.json','application/json')}
+function downloadBlob(content,name,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();URL.revokeObjectURL(a.href)}
+function resetAll(){if(!confirm('Reset all calculator values to default examples?'))return;localStorage.removeItem('ctc_inputs');localStorage.removeItem('ctc_visits');location.reload();}
+readSaved();renderVisits();ids.forEach(id=>document.getElementById(id).addEventListener('input',calculate));calculate();
+</script>
+</body>
+</html>
